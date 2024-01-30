@@ -3,7 +3,7 @@ const schedule = require('node-schedule');
 
 // Configuration
 const TELEGRAM_BOT_TOKEN = 'MY_TELEGRAM_BOT_TOKEN';
-const TELEGRAM_CHAT_ID = 'O9PE0JT7HX8U7756';
+const TELEGRAM_CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID';
 const STOCK_TICKER = 'AAPL'; // For example, Apple Inc. (AAPL)
 const ALERT_THRESHOLD = 0.02; // 2%
 const MONITOR_INTERVAL = '*/5 * * * *'; // Every 5 minutes

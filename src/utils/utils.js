@@ -8,8 +8,9 @@ const STOCK_TICKER = 'AAPL'; // For example, Apple Inc. (AAPL)
 const ALERT_THRESHOLD = 0.02; // 2%
 const MONITOR_INTERVAL = '*/5 * * * *'; // Every 5 minutes
 
+
 // function of sending messages in Telegram
-async function sendTelegramMessage(message = "") {
+ function sendTelegramMessage(message = "") {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
   const data = {
     chat_id: TELEGRAM_CHAT_ID,
@@ -17,11 +18,11 @@ async function sendTelegramMessage(message = "") {
   };
 
   try {
-    console.log('Start');
+    console.log('Sending Telegram message...');
     axios.post(url, data);
-    console.log('Success');
+    console.log('Telegram message sent successfully.');
   } catch (error) {
-    console.error('Ошибка при отправке сообщения в Telegram:', error);
+    console.error('Error sending message to Telegram:', error);
   }
 }
 

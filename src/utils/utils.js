@@ -27,7 +27,7 @@ async function sendTelegramMessage(message = "") {
 
 // Функция для получения цены акции
 async function getStockPrice() {
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${STOCK_TICKER}&apikey=YOUR_ALPHAVANTAGE_API_KEY`;
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${'AAPL'}&apikey=YOUR_ALPHAVANTAGE_API_KEY`;
 
   try {
     const response = await axios.get(url);

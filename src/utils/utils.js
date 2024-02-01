@@ -1,16 +1,20 @@
 import axios from 'axios';
-const schedule = require('node-schedule');
+import schedule from 'node-schedule';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Configuration
-const TELEGRAM_BOT_TOKEN = 'MY_TELEGRAM_BOT_TOKEN';
-const TELEGRAM_CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID';
-const STOCK_TICKER = 'AAPL'; // For example, Apple Inc. (AAPL)
-const ALERT_THRESHOLD = 0.02; // 2%
-const MONITOR_INTERVAL = '*/5 * * * *'; // Every 5 minutes
+const {
+  TELEGRAM_BOT_TOKEN,
+  TELEGRAM_CHAT_ID,
+  STOCK_TICKER,
+  ALPHAVANTAGE_API_KEY,
+  ALERT_THRESHOLD,
+  MONITOR_INTERVAL
+} = process.env;
 
-
-// function of sending messages in Telegram
- function sendTelegramMessage(message = "") {
+// Function to send messages in Telegram
+async function sendTelegramMessage(message = "") {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
   const data = {
     chat_id: TELEGRAM_CHAT_ID,
@@ -19,35 +23,39 @@ const MONITOR_INTERVAL = '*/5 * * * *'; // Every 5 minutes
 
   try {
     console.log('Sending Telegram message...');
-    axios.post(url, data);
+    await axios.post(url, data);
     console.log('Telegram message sent successfully.');
   } catch (error) {
     console.error('Error sending message to Telegram:', error);
   }
 }
 
-// Функция для получения цены акции
-async function getStockPrice() {
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${'AAPL'}&apikey=YOUR_ALPHAVANTAGE_API_KEY`;
+// Function to get stock price
+async function getStockPrice(ticker) {
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${ALPHAVANTAGE_API_KEY}`;
 
   try {
-    const response = await axios.get(url);
-    const price = response.data['Global Quote']['05. price'];
+    const response = await axios.get(url);//perform an asynchronous GET request to the API
+    const globalQuote = response.data['Global Quote'];
+    if (!globalQuote || !globalQuote['05. price']) {
+      throw new Error('Failed to get stock price');
+    }
+    const price = globalQuote['05. price'];
     return parseFloat(price);
   } catch (error) {
-    console.error('Ошибка при получении цены акции:', error);
+    console.error('Error getting stock price:', error);
     return null;
   }
 }
 
-// Функция для мониторинга цены акции
+// Function to monitor stock price
 async function monitorStockPrice() {
-  let initialPrice = await getStockPrice();
+  let initialPrice = await getStockPrice(STOCK_TICKER);
   let priceDropCount = 0;
 
-  // Задача для планировщика
+  // Schedule job
   const job = schedule.scheduleJob(MONITOR_INTERVAL, async function () {
-    const currentPrice = await getStockPrice();
+    const currentPrice = await getStockPrice(STOCK_TICKER);
     const priceDrop = (initialPrice - currentPrice) / initialPrice;
 
     if (priceDrop >= ALERT_THRESHOLD) {
@@ -57,14 +65,14 @@ async function monitorStockPrice() {
     }
 
     if (priceDropCount >= 5) {
-      const message = `Цена акции ${STOCK_TICKER} упала на 2% или более за 5 минут. Текущая цена: $${currentPrice}`;
+      const message = `Stock price for ${STOCK_TICKER} has dropped by 2% or more in the last 5 minutes. Current price: $${currentPrice}`;
       await sendTelegramMessage(message);
-      priceDropCount = 0; // Сброс счетчика
+      priceDropCount = 0; // Reset counter
     }
 
     initialPrice = currentPrice;
   });
 }
 
-// Запуск мониторинга
+// Start monitoring
 monitorStockPrice();
